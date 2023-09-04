@@ -3,8 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var nodePath = require("path");
 var utils = require("tsutils");
 var ts = require("typescript");
-var objectdata_1 = require("./objectdata");
-var compileTimeObjects = require("war3-objectdata-th/dist/cjs");
 var typecast_1 = require("mdx-m3-viewer-th/dist/cjs/common/typecast");
 require.extensions[".ts"] = require.extensions[".js"];
 require.extensions[".tsx"] = require.extensions[".js"];
@@ -54,7 +52,6 @@ function createExpression(thing, context) {
 }
 function runTransformer(program, options) {
     var checker = program.getTypeChecker();
-    var objectData = (0, objectdata_1.loadObjectData)(options.mapDir);
     function processNode(node, file, context) {
         if (utils.isCallExpression(node)) {
             var signature = checker.getResolvedSignature(node);
@@ -71,18 +68,8 @@ function runTransformer(program, options) {
                         transpiledJs = transpiledJs.substr(0, transpiledJs.length - 1);
                     }
                     var result = eval("(".concat(transpiledJs, ")"))({
-                        objectData: objectData,
                         fourCC: typecast_1.stringToBase256,
                         log: console.log,
-                        constants: {
-                            abilities: compileTimeObjects.Abilities,
-                            buffs: compileTimeObjects.Buffs,
-                            destructables: compileTimeObjects.Destructables,
-                            doodads: compileTimeObjects.Doodads,
-                            items: compileTimeObjects.Items,
-                            units: compileTimeObjects.Units,
-                            upgrades: compileTimeObjects.Upgrades
-                        }
                     });
                     return createExpression(result, context);
                 }
@@ -117,14 +104,7 @@ function runTransformer(program, options) {
                 return context.factory.updateBundle(node, newFiles);
             }
             else if (ts.isSourceFile(node)) {
-                var tsFile = processAndUpdateSourceFile(context, node);
-                // If this is the entry file, and thus the last file to be processed, save modified object data.
-                if (options.entryFile &&
-                    options.outputDir &&
-                    nodePath.relative(node.fileName, options.entryFile).length === 0) {
-                    (0, objectdata_1.saveObjectData)(objectData, options.outputDir);
-                }
-                return tsFile;
+                return processAndUpdateSourceFile(context, node);
             }
         }
         catch (e) {

@@ -1,6 +1,6 @@
 {
-  "name": "war3-transformer",
-  "version": "3.0.9",
+  "name": "@team-oze/war3-transformer",
+  "version": "3.0.9-oze-nod-1.0",
   "description": "Transformer for Warcraft III maps using TypeScript.",
   "main": "dist/transformer.js",
   "scripts": {
@@ -8,9 +8,9 @@
     "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "TriggerHappy",
+  "author": "TriggerHappy & Cloud9 (Team OZE)",
   "license": "MIT",
-  "url": "https://github.com/cipherxof/war3-transformer",
+  "url": "https://github.com/team-oze/war3-transformer",
   "dependencies": {
     "mdx-m3-viewer-th": "^5.13.0",
     "tsconfig-paths": "^3.9.0",

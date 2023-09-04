@@ -1,9 +1,6 @@
 import * as nodePath from "path";
-import { createMatchPath } from "tsconfig-paths";
 import * as utils from "tsutils";
 import * as ts from "typescript";
-import { loadObjectData, saveObjectData } from "./objectdata";
-import * as compileTimeObjects from "war3-objectdata-th/dist/cjs";
 import { stringToBase256 } from "mdx-m3-viewer-th/dist/cjs/common/typecast";
 
 require.extensions[".ts"] = require.extensions[".js"];
@@ -78,7 +75,6 @@ export default function runTransformer(
   options: TransformerOptions
 ): ts.TransformerFactory<ts.Node> {
   const checker = program.getTypeChecker();
-  const objectData = loadObjectData(options.mapDir);
   
   function processNode(
     node: ts.Node,
@@ -104,18 +100,8 @@ export default function runTransformer(
           }
 
           const result = eval(`(${transpiledJs})`)({
-            objectData,
             fourCC: stringToBase256,
             log: console.log,
-            constants: {
-              abilities: compileTimeObjects.Abilities,
-              buffs: compileTimeObjects.Buffs,
-              destructables: compileTimeObjects.Destructables,
-              doodads: compileTimeObjects.Doodads,
-              items: compileTimeObjects.Items,
-              units: compileTimeObjects.Units,
-              upgrades: compileTimeObjects.Upgrades
-            }
           });
 
           return createExpression(result, context);
@@ -175,18 +161,7 @@ export default function runTransformer(
 
         return context.factory.updateBundle(node, newFiles);
       } else if (ts.isSourceFile(node)) {
-        const tsFile = processAndUpdateSourceFile(context, node);
-
-        // If this is the entry file, and thus the last file to be processed, save modified object data.
-        if (
-          options.entryFile &&
-          options.outputDir &&
-          nodePath.relative(node.fileName, options.entryFile).length === 0
-        ) {
-          saveObjectData(objectData, options.outputDir);
-        }
-
-        return tsFile;
+        return processAndUpdateSourceFile(context, node);
       }
     } catch (e) {
       console.error(e);
